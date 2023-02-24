@@ -12,8 +12,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 
 
-
-
 const Login = () => {
 
     const [email, setEmail] = useState("");
