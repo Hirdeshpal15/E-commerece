@@ -7,6 +7,8 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebase/config";
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { SET_ACTIVE_USER, REMOVE_ACTIVE_USER } from '../../redux/slice/authSlice';
 
 
 const Header = () => {
@@ -14,7 +16,7 @@ const Header = () => {
     const [showMenu, setShowMenu] = useState(false);
     const [displayName, setDisplayName] = useState();
     const navigate = useNavigate();
-
+    const dispatch = useDispatch();
 
     const activeLink = ({ isActive }) => (isActive ? `${styles.active}` : "");
 
@@ -22,13 +24,27 @@ const Header = () => {
     useEffect(() => {
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                const uid = user.uid;
-                setDisplayName(user.displayName);
+                // const uid = user.uid;
+                if (user.displayName == null) {
+                    const u1 = user.email.substring(0, user.email.indexOf("@"));
+                    const uName = u1.charAt(0).toUpperCase() + u1.slice(1);
+                    setDisplayName(uName);
+                } else {
+                    setDisplayName(user.displayName);
+                }
+
+
+                dispatch(SET_ACTIVE_USER({
+                    email: user.email,
+                    useName: user.useName ? user.displayName : user.displayName,
+                    userID: user.userID
+                }))
             } else {
                 setDisplayName('');
+                dispatch(REMOVE_ACTIVE_USER());
             }
         });
-    }, []);
+    }, [dispatch, displayName]);
 
     const toggleMenu = () => {
         setShowMenu(!showMenu);
@@ -83,13 +99,16 @@ const Header = () => {
                     <div onClick={hideMenu} className={styles['header-right']}>
                         <span className={styles.links}>
                             <NavLink to='/login' className={activeLink} >Login</NavLink>
-                            <a href="#">
+                            <a href="#home">
                                 <FaUserCircle size={18} />
-                                {displayName}
+                                Hi,{displayName}
                             </a>
                             <NavLink to='/register' className={activeLink} >Register</NavLink>
                             <NavLink to='/order-history' className={activeLink} >My Orders</NavLink>
-                            <NavLink to='/' onClick={logoutUser}>Logout</NavLink>
+
+                            <NavLink to="/" onClick={logoutUser}>Logout</NavLink>
+
+
                         </span>
                         {cart}
 
